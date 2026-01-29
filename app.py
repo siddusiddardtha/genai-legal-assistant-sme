@@ -146,11 +146,16 @@ if uploaded_file:
     colA, colB = st.columns(2)
     colA.bar_chart(risk_df.set_index("Risk"))
     colB.pyplot(
-        risk_df.set_index("Risk").plot.pie(
-            y="Count",
-            autopct="%1.0f%%",
-            legend=False
-        ).figure
+       st.subheader("📊 Risk Distribution")
+
+chart_df = {
+    "High Risk": clause_risk_levels.count("High"),
+    "Medium Risk": clause_risk_levels.count("Medium"),
+    "Low Risk": clause_risk_levels.count("Low")
+}
+
+st.bar_chart(chart_df)
+
     )
 
     st.divider()
