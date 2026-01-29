@@ -1,12 +1,21 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 
 # Virtual environment
 .venv/
-
-# Runtime files
-audit_log.json
+env/
+venv/
 
 # Environment variables
 .env
+
+# Logs & runtime files
+audit_log.json
+
+# Generated files
+exports/*.pdf
+
+# OS
+.DS_Store
