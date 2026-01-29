@@ -1,6 +1,5 @@
 import streamlit as st
-from exports.pdf_generator import generate_contract_report
-from core.audit_logger import log_event
+
 from core.ingestion import extract_text
 from core.language import detect_language
 from core.clause_extraction import classify_contract_type, extract_clauses
@@ -9,40 +8,78 @@ from core.risk_engine import (
     calculate_risk_score,
     calculate_contract_risk
 )
+from core.audit_logger import log_event
 from llm.legal_reasoning import explain_clause, suggest_alternative_clause
+from exports.pdf_generator import generate_contract_report
 
-st.set_page_config(page_title="GenAI Legal Assistant", layout="wide")
+
+# -----------------------------
+# Streamlit Page Config
+# -----------------------------
+st.set_page_config(
+    page_title="GenAI Legal Assistant for SMEs",
+    layout="wide"
+)
 
 st.title("📄 GenAI-Powered Legal Assistant for Indian SMEs")
+st.write(
+    "Upload an employment or service contract to identify risks, "
+    "understand clauses in plain language, and export a legal summary."
+)
 
+# -----------------------------
+# File Upload
+# -----------------------------
 uploaded_file = st.file_uploader(
     "Upload Contract (PDF, DOCX, or TXT)",
     type=["pdf", "docx", "txt"]
 )
 
+# -----------------------------
+# Main Processing
+# -----------------------------
 if uploaded_file:
-    with st.spinner("Processing contract..."):
+    with st.spinner("Analyzing contract..."):
         contract_text = extract_text(uploaded_file)
 
-    if contract_text.strip():
+    if not contract_text.strip():
+        st.error("Could not extract text from the uploaded file.")
+    else:
+        # ---- Core Analysis ----
         language = detect_language(contract_text)
         contract_type = classify_contract_type(contract_text)
         clauses = extract_clauses(contract_text)
 
-        clause_risks = []
+        clause_risk_levels = []
 
         for clause in clauses:
             clause_type = classify_clause_type(clause["text"])
             risk_level, score, reasons = calculate_risk_score(
                 clause["text"], clause_type
             )
+
+            clause["clause_type"] = clause_type
             clause["risk_level"] = risk_level
             clause["risk_reasons"] = reasons
-            clause_risks.append(risk_level)
 
-        contract_risk = calculate_contract_risk(clause_risks)
+            clause_risk_levels.append(risk_level)
 
-        # 🔹 DASHBOARD
+        contract_risk = calculate_contract_risk(clause_risk_levels)
+
+        # ---- Audit Log (FIXED SCOPE) ----
+        log_event(
+            event_type="contract_analyzed",
+            details={
+                "language": language,
+                "contract_type": contract_type,
+                "overall_risk": contract_risk,
+                "total_clauses": len(clauses)
+            }
+        )
+
+        # -----------------------------
+        # Dashboard
+        # -----------------------------
         st.success("Contract analyzed successfully!")
 
         col1, col2, col3, col4 = st.columns(4)
@@ -53,14 +90,29 @@ if uploaded_file:
 
         st.divider()
 
-        # 🔹 CLAUSE INTELLIGENCE
-        st.subheader("🧠 Clause Intelligence (GenAI)")
+        # -----------------------------
+        # Risk Overview
+        # -----------------------------
+        st.subheader("📊 Risk Overview")
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("High Risk Clauses", clause_risk_levels.count("High"))
+        c2.metric("Medium Risk Clauses", clause_risk_levels.count("Medium"))
+        c3.metric("Low Risk Clauses", clause_risk_levels.count("Low"))
+
+        st.divider()
+
+        # -----------------------------
+        # Clause-Level Intelligence
+        # -----------------------------
+        st.subheader("🧠 Clause-Level Analysis")
 
         for clause in clauses:
             with st.expander(
                 f"Clause {clause['clause_id']} — Risk: {clause['risk_level']}"
             ):
-                st.write("**Original Clause**")
+                st.markdown(f"**Clause Type:** {clause['clause_type']}")
+                st.write("**Original Clause:**")
                 st.write(clause["text"])
 
                 if clause["risk_level"] != "Low":
@@ -72,36 +124,27 @@ if uploaded_file:
                 else:
                     st.success("This clause appears balanced.")
 
-    else:
-        st.error("Could not extract text from the uploaded file.")
+        # -----------------------------
+        # PDF Export
+        # -----------------------------
+        st.divider()
+        st.subheader("📤 Export for Legal Review")
 
-log_event(
-    event_type="contract_analyzed",
-    details={
-        "language": language,
-        "contract_type": contract_type,
-        "overall_risk": contract_risk,
-        "total_clauses": len(clauses)
-    }
-)
-st.divider()
-st.subheader("📤 Export Report")
+        if st.button("Generate PDF Report"):
+            pdf_path = "exports/contract_analysis_report.pdf"
 
-if st.button("Generate PDF Report"):
-    pdf_path = "exports/contract_analysis_report.pdf"
+            generate_contract_report(
+                filename=pdf_path,
+                contract_type=contract_type,
+                language=language,
+                overall_risk=contract_risk,
+                clauses=clauses
+            )
 
-    generate_contract_report(
-        filename=pdf_path,
-        contract_type=contract_type,
-        language=language,
-        overall_risk=contract_risk,
-        clauses=clauses
-    )
-
-    with open(pdf_path, "rb") as f:
-        st.download_button(
-            label="📄 Download Contract Analysis PDF",
-            data=f,
-            file_name="contract_analysis_report.pdf",
-            mime="application/pdf"
-        )
+            with open(pdf_path, "rb") as f:
+                st.download_button(
+                    label="📄 Download Contract Analysis PDF",
+                    data=f,
+                    file_name="contract_analysis_report.pdf",
+                    mime="application/pdf"
+                )
