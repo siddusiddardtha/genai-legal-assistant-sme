@@ -1,2 +1,5 @@
-*echo "__pycache__/" >> .gitignore
-echo "*.pyc" >> .gitignore
+__pycache__/
+*.pyc
+.env
+audit_log.json
+.venv/

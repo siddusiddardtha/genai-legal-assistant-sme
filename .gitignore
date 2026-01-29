@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+.venv/
+
+# Runtime files
+audit_log.json
+
+# Environment variables
+.env
