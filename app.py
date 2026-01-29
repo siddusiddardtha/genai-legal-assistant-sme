@@ -85,13 +85,17 @@ if uploaded_file:
     with st.spinner("Analyzing contract..."):
         contract_text = extract_text(uploaded_file)
 
-    if not contract_text.strip():
-        st.error("Could not extract text.")
+    if not contract_text or not contract_text.strip():
+        st.error("Could not extract text from the uploaded file.")
         st.stop()
 
     language = detect_language(contract_text)
     contract_type = classify_contract_type(contract_text)
     clauses = extract_clauses(contract_text)
+
+    if not clauses:
+        st.warning("No clauses could be extracted from this document.")
+        st.stop()
 
     clause_risk_levels = []
 
@@ -112,7 +116,8 @@ if uploaded_file:
         {
             "language": language,
             "contract_type": contract_type,
-            "risk": contract_risk
+            "overall_risk": contract_risk,
+            "total_clauses": len(clauses)
         }
     )
 
@@ -130,33 +135,20 @@ if uploaded_file:
     st.divider()
 
     # -----------------------------
-    # Risk Charts (FEATURE #2)
+    # Risk Distribution (SAFE – NO MATPLOTLIB)
     # -----------------------------
     st.subheader("📊 Risk Distribution")
 
-    risk_df = pd.DataFrame({
-        "Risk": ["High", "Medium", "Low"],
+    chart_df = pd.DataFrame({
+        "Risk Level": ["High", "Medium", "Low"],
         "Count": [
             clause_risk_levels.count("High"),
             clause_risk_levels.count("Medium"),
             clause_risk_levels.count("Low")
         ]
-    })
+    }).set_index("Risk Level")
 
-    colA, colB = st.columns(2)
-    colA.bar_chart(risk_df.set_index("Risk"))
-    colB.pyplot(
-       st.subheader("📊 Risk Distribution")
-
-chart_df = {
-    "High Risk": clause_risk_levels.count("High"),
-    "Medium Risk": clause_risk_levels.count("Medium"),
-    "Low Risk": clause_risk_levels.count("Low")
-}
-
-st.bar_chart(chart_df)
-
-    )
+    st.bar_chart(chart_df)
 
     st.divider()
 
@@ -174,12 +166,13 @@ st.bar_chart(chart_df)
             st.write(clause["text"])
 
             if clause["risk_level"] != "Low":
-                st.write("### ⚠️ Why this is risky")
-                for r in clause["risk_reasons"]:
-                    st.markdown(f"- {r}")
+                if clause["risk_reasons"]:
+                    st.write("### ⚠️ Why this is risky")
+                    for r in clause["risk_reasons"]:
+                        st.markdown(f"- {r}")
 
                 # -----------------------------
-                # Clause Comparison (FEATURE #3)
+                # Clause Comparison
                 # -----------------------------
                 st.write("### 🔁 Clause Comparison")
 
@@ -193,29 +186,34 @@ st.bar_chart(chart_df)
                     st.markdown("**Safer Alternative**")
                     if use_ai:
                         try:
-                            safer = suggest_alternative_gemini(clause["text"])
-                            st.success(safer)
+                            st.success(
+                                suggest_alternative_gemini(clause["text"])
+                            )
                         except Exception:
                             st.success(
-                                "Add notice periods, mutual rights, and payment protections."
+                                "Consider adding notice periods, mutual rights, "
+                                "or payment safeguards."
                             )
                     else:
                         st.success(
                             "Add notice periods and balance termination rights."
                         )
 
-                # Explanation
                 st.write("### 🧠 Plain-Language Explanation")
                 if use_ai:
                     try:
-                        st.info(explain_clause_gemini(clause["text"]))
+                        st.info(
+                            explain_clause_gemini(clause["text"])
+                        )
                     except Exception:
                         st.info(
-                            "This clause gives one party excessive control and increases business risk."
+                            "This clause may expose the business to financial or "
+                            "operational risk due to imbalance."
                         )
                 else:
                     st.info(
-                        "This clause may expose the business to financial or operational risk."
+                        "This clause may expose the business to financial or "
+                        "operational risk."
                     )
             else:
                 st.success("This clause appears balanced.")
@@ -224,16 +222,23 @@ st.bar_chart(chart_df)
     # PDF Export
     # -----------------------------
     st.divider()
-    st.subheader("📤 Export")
+    st.subheader("📤 Export for Legal Review")
 
     if st.button("Generate PDF Report"):
         pdf_path = "exports/contract_analysis_report.pdf"
+
         generate_contract_report(
-            pdf_path, contract_type, language, contract_risk, clauses
+            filename=pdf_path,
+            contract_type=contract_type,
+            language=language,
+            overall_risk=contract_risk,
+            clauses=clauses
         )
+
         with open(pdf_path, "rb") as f:
             st.download_button(
-                "📄 Download PDF",
+                "📄 Download Contract Analysis PDF",
                 f,
-                file_name="contract_analysis_report.pdf"
+                file_name="contract_analysis_report.pdf",
+                mime="application/pdf"
             )
