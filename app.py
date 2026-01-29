@@ -26,7 +26,14 @@ st.write(
     "Upload an employment or service contract to identify risks, "
     "understand clauses in plain language, and export a legal summary."
 )
+from llm.legal_reasoning import llm_available
 
+st.markdown("### 🤖 GPT Connection Status")
+
+if llm_available():
+    st.success("✅ GPT is connected and ready")
+else:
+    st.warning("⚠️ GPT not connected (using fallback explanations)")
 # -----------------------------
 # File Upload
 # -----------------------------
