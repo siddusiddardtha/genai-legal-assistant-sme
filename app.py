@@ -11,38 +11,104 @@ st.set_page_config(
 )
 
 # -----------------------------
-# Dark Mode Toggle
+# Premium UI Theme
 # -----------------------------
 dark_mode = st.toggle("🌙 Dark Mode", value=False)
 
 if dark_mode:
     st.markdown("""
     <style>
-    .stApp { background: #0f172a; color: #e5e7eb; }
-    h1,h2,h3 { color: #f8fafc; }
-    [data-testid="metric-container"] {
-        background: #1e293b;
-        color: white;
-        border-radius: 14px;
+    .stApp {
+        background: radial-gradient(circle at top, #020617, #020617);
+        color: #e5e7eb;
+        font-family: 'Inter', sans-serif;
     }
-    .streamlit-expanderHeader { color: #e5e7eb; }
-    .stAlert { background: #1e293b; }
+
+    h1, h2, h3 {
+        color: #f8fafc;
+        font-weight: 700;
+    }
+
+    [data-testid="metric-container"],
+    .stExpander {
+        background: linear-gradient(145deg, #0f172a, #020617);
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid #1e293b;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+
+    .stButton > button {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        border-radius: 12px;
+        padding: 0.6rem 1.4rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(99,102,241,0.5);
+    }
+
+    .stAlert {
+        border-radius: 14px;
+        background: #020617;
+        border-left: 5px solid #6366f1;
+    }
     </style>
     """, unsafe_allow_html=True)
+
 else:
     st.markdown("""
     <style>
-    .stApp { background: linear-gradient(180deg,#f8fafc,#eef2ff); }
-    [data-testid="metric-container"] {
+    .stApp {
+        background: linear-gradient(180deg, #f9fafb, #eef2ff);
+        color: #0f172a;
+        font-family: 'Inter', sans-serif;
+    }
+
+    h1, h2, h3 {
+        color: #020617;
+        font-weight: 700;
+    }
+
+    [data-testid="metric-container"],
+    .stExpander {
         background: white;
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+    }
+
+    .stButton > button {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        color: white;
+        border-radius: 12px;
+        padding: 0.6rem 1.4rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(79,70,229,0.35);
+    }
+
+    .stAlert {
         border-radius: 14px;
-        box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+        background: #f8fafc;
+        border-left: 5px solid #4f46e5;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # -----------------------------
-# Imports
+# Core Imports (UNCHANGED)
 # -----------------------------
 from core.ingestion import extract_text
 from core.language import detect_language
@@ -64,8 +130,8 @@ from exports.pdf_generator import generate_contract_report
 # -----------------------------
 st.title("📄 GenAI-Powered Legal Assistant for Indian SMEs")
 st.write(
-    "Upload a contract to identify risks, understand clauses in plain language, "
-    "and compare safer alternatives."
+    "Upload contracts, identify legal risks, understand clauses in plain language, "
+    "and compare safer alternatives using AI."
 )
 
 use_ai = st.toggle("🤖 Enable AI (Gemini)", value=True)
@@ -74,7 +140,7 @@ use_ai = st.toggle("🤖 Enable AI (Gemini)", value=True)
 # File Upload
 # -----------------------------
 uploaded_file = st.file_uploader(
-    "Upload Contract (PDF, DOCX, or TXT)",
+    "📤 Upload Contract (PDF, DOCX, TXT)",
     type=["pdf", "docx", "txt"]
 )
 
@@ -82,11 +148,11 @@ uploaded_file = st.file_uploader(
 # Main Processing
 # -----------------------------
 if uploaded_file:
-    with st.spinner("Analyzing contract..."):
+    with st.spinner("🔍 Analyzing contract..."):
         contract_text = extract_text(uploaded_file)
 
     if not contract_text or not contract_text.strip():
-        st.error("Could not extract text from the uploaded file.")
+        st.error("❌ Could not extract text from the uploaded file.")
         st.stop()
 
     language = detect_language(contract_text)
@@ -94,7 +160,7 @@ if uploaded_file:
     clauses = extract_clauses(contract_text)
 
     if not clauses:
-        st.warning("No clauses could be extracted from this document.")
+        st.warning("⚠️ No clauses detected in this document.")
         st.stop()
 
     clause_risk_levels = []
@@ -124,18 +190,18 @@ if uploaded_file:
     # -----------------------------
     # Dashboard
     # -----------------------------
-    st.success("Contract analyzed successfully")
+    st.success("✅ Contract analyzed successfully")
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Language", language)
-    c2.metric("Contract Type", contract_type)
-    c3.metric("Total Clauses", len(clauses))
-    c4.metric("Overall Risk", contract_risk)
+    c1.metric("🌐 Language", language)
+    c2.metric("📘 Contract Type", contract_type)
+    c3.metric("📑 Total Clauses", len(clauses))
+    c4.metric("⚠️ Overall Risk", contract_risk)
 
     st.divider()
 
     # -----------------------------
-    # Risk Distribution (SAFE – NO MATPLOTLIB)
+    # Risk Distribution
     # -----------------------------
     st.subheader("📊 Risk Distribution")
 
@@ -171,9 +237,6 @@ if uploaded_file:
                     for r in clause["risk_reasons"]:
                         st.markdown(f"- {r}")
 
-                # -----------------------------
-                # Clause Comparison
-                # -----------------------------
                 st.write("### 🔁 Clause Comparison")
 
                 col1, col2 = st.columns(2)
@@ -186,37 +249,22 @@ if uploaded_file:
                     st.markdown("**Safer Alternative**")
                     if use_ai:
                         try:
-                            st.success(
-                                suggest_alternative_gemini(clause["text"])
-                            )
+                            st.success(suggest_alternative_gemini(clause["text"]))
                         except Exception:
-                            st.success(
-                                "Consider adding notice periods, mutual rights, "
-                                "or payment safeguards."
-                            )
+                            st.success("Consider adding notice periods and safeguards.")
                     else:
-                        st.success(
-                            "Add notice periods and balance termination rights."
-                        )
+                        st.success("Add notice periods and balanced termination rights.")
 
                 st.write("### 🧠 Plain-Language Explanation")
                 if use_ai:
                     try:
-                        st.info(
-                            explain_clause_gemini(clause["text"])
-                        )
+                        st.info(explain_clause_gemini(clause["text"]))
                     except Exception:
-                        st.info(
-                            "This clause may expose the business to financial or "
-                            "operational risk due to imbalance."
-                        )
+                        st.info("This clause may expose the business to risk.")
                 else:
-                    st.info(
-                        "This clause may expose the business to financial or "
-                        "operational risk."
-                    )
+                    st.info("This clause may expose the business to risk.")
             else:
-                st.success("This clause appears balanced.")
+                st.success("✅ This clause appears balanced.")
 
     # -----------------------------
     # PDF Export
