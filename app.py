@@ -16,54 +16,65 @@ st.set_page_config(
 dark_mode = st.toggle("🌙 Dark Mode", value=False)
 
 # =========================================================
-# THEME (THIS ONE *WILL* CHANGE VISUALLY)
+# THEME (STYLE ONLY – LOGIC UNCHANGED)
 # =========================================================
 if dark_mode:
     st.markdown("""
     <style>
     .stApp {
-        background: linear-gradient(180deg, #020617, #020617);
+        background: linear-gradient(180deg, #0b1220, #020617);
         color: #e5e7eb;
+        font-family: "Inter", sans-serif;
     }
 
     h1 {
-        font-size: 3rem;
+        font-size: 2.8rem;
         font-weight: 800;
         color: #f8fafc;
+        letter-spacing: -0.5px;
     }
 
     h2, h3 {
-        color: #e5e7eb;
+        color: #e2e8f0;
         font-weight: 700;
     }
 
     [data-testid="metric-container"] {
-        background: #1e293b;
-        border-radius: 20px;
-        padding: 20px;
-        border-left: 6px solid #22d3ee;
-        box-shadow: 0 14px 40px rgba(0,0,0,0.6);
-        color: white;
+        background: #0f172a;
+        border-radius: 16px;
+        padding: 18px;
+        border: 1px solid #1e293b;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        color: #f8fafc;
     }
 
     .streamlit-expanderHeader {
         background: #020617;
-        border-radius: 14px;
+        border-radius: 12px;
         font-weight: 600;
+        border: 1px solid #1e293b;
         color: #e5e7eb;
     }
 
     .stAlert {
         background: #020617;
-        border-radius: 14px;
+        border-radius: 12px;
+        border: 1px solid #1e293b;
     }
 
     .stButton > button {
-        background: linear-gradient(90deg, #22d3ee, #38bdf8);
-        color: #020617;
-        font-weight: 800;
-        border-radius: 14px;
-        padding: 12px 26px;
+        background: linear-gradient(90deg, #2563eb, #1d4ed8);
+        color: white;
+        font-weight: 700;
+        border-radius: 10px;
+        padding: 12px 28px;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .stButton > button:hover {
+        background: linear-gradient(90deg, #1e40af, #1d4ed8);
+        transform: translateY(-1px);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -73,12 +84,14 @@ else:
     .stApp {
         background: linear-gradient(180deg, #f8fafc, #eef2ff);
         color: #0f172a;
+        font-family: "Inter", sans-serif;
     }
 
     h1 {
-        font-size: 3rem;
+        font-size: 2.8rem;
         font-weight: 800;
-        color: #0f172a;
+        color: #020617;
+        letter-spacing: -0.5px;
     }
 
     h2, h3 {
@@ -87,35 +100,43 @@ else:
     }
 
     [data-testid="metric-container"] {
-        background: white;
-        border-radius: 20px;
-        padding: 20px;
-        border-left: 6px solid #6366f1;
-        box-shadow: 0 14px 40px rgba(0,0,0,0.12);
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 18px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
     }
 
     .streamlit-expanderHeader {
-        background: #eef2ff;
-        border-radius: 14px;
+        background: #f1f5f9;
+        border-radius: 12px;
         font-weight: 600;
+        border: 1px solid #e5e7eb;
     }
 
     .stAlert {
-        border-radius: 14px;
+        border-radius: 12px;
     }
 
     .stButton > button {
-        background: linear-gradient(90deg, #4f46e5, #6366f1);
+        background: linear-gradient(90deg, #2563eb, #3b82f6);
         color: white;
-        font-weight: 800;
-        border-radius: 14px;
-        padding: 12px 26px;
+        font-weight: 700;
+        border-radius: 10px;
+        padding: 12px 28px;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .stButton > button:hover {
+        background: linear-gradient(90deg, #1d4ed8, #2563eb);
+        transform: translateY(-1px);
     }
     </style>
     """, unsafe_allow_html=True)
 
 # =========================================================
-# IMPORTS
+# IMPORTS (UNCHANGED)
 # =========================================================
 from core.ingestion import extract_text
 from core.language import detect_language
@@ -152,7 +173,7 @@ uploaded_file = st.file_uploader(
 )
 
 # =========================================================
-# MAIN LOGIC
+# MAIN LOGIC (UNCHANGED)
 # =========================================================
 if uploaded_file:
     with st.spinner("Analyzing contract..."):
@@ -190,9 +211,6 @@ if uploaded_file:
         }
     )
 
-    # =====================================================
-    # EXECUTIVE SUMMARY
-    # =====================================================
     st.subheader("📌 Executive Summary")
 
     summary = (
@@ -208,9 +226,6 @@ if uploaded_file:
     else:
         st.success(summary + " Contract appears balanced.")
 
-    # =====================================================
-    # METRICS
-    # =====================================================
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Language", language)
     c2.metric("Contract Type", contract_type)
@@ -219,9 +234,6 @@ if uploaded_file:
 
     st.divider()
 
-    # =====================================================
-    # RISK CHART
-    # =====================================================
     st.subheader("📊 Risk Distribution")
 
     chart_df = pd.DataFrame({
@@ -237,9 +249,6 @@ if uploaded_file:
 
     st.divider()
 
-    # =====================================================
-    # CLAUSE ANALYSIS
-    # =====================================================
     st.subheader("🧠 Clause-Level Intelligence")
 
     icon = {"High": "🔴", "Medium": "🟠", "Low": "🟢"}
@@ -276,9 +285,6 @@ if uploaded_file:
             else:
                 st.success("This clause appears balanced.")
 
-    # =====================================================
-    # PDF EXPORT
-    # =====================================================
     st.divider()
     st.subheader("📤 Export")
 
@@ -300,9 +306,6 @@ if uploaded_file:
                 mime="application/pdf"
             )
 
-    # =====================================================
-    # DISCLAIMER
-    # =====================================================
     st.divider()
     with st.expander("⚖️ Legal Disclaimer"):
         st.write(
