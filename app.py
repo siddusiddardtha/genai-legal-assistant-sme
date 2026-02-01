@@ -16,65 +16,36 @@ st.set_page_config(
 dark_mode = st.toggle("🌙 Dark Mode", value=False)
 
 # =========================================================
-# THEME (STYLE ONLY – LOGIC UNCHANGED)
+# STYLE (ONLY BACKGROUND + SIMPLE PROFESSIONAL LOOK)
 # =========================================================
 if dark_mode:
     st.markdown("""
     <style>
     .stApp {
-        background: linear-gradient(180deg, #0b1220, #020617);
+        background-color: #0f172a;
         color: #e5e7eb;
-        font-family: "Inter", sans-serif;
     }
 
-    h1 {
-        font-size: 2.8rem;
-        font-weight: 800;
+    h1, h2, h3 {
         color: #f8fafc;
-        letter-spacing: -0.5px;
-    }
-
-    h2, h3 {
-        color: #e2e8f0;
-        font-weight: 700;
     }
 
     [data-testid="metric-container"] {
-        background: #0f172a;
-        border-radius: 16px;
-        padding: 18px;
-        border: 1px solid #1e293b;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        color: #f8fafc;
+        background-color: #1e293b;
+        border-radius: 10px;
+        padding: 16px;
     }
 
     .streamlit-expanderHeader {
-        background: #020617;
-        border-radius: 12px;
-        font-weight: 600;
-        border: 1px solid #1e293b;
-        color: #e5e7eb;
-    }
-
-    .stAlert {
-        background: #020617;
-        border-radius: 12px;
-        border: 1px solid #1e293b;
+        background-color: #020617;
+        border-radius: 8px;
     }
 
     .stButton > button {
-        background: linear-gradient(90deg, #2563eb, #1d4ed8);
+        background-color: #2563eb;
         color: white;
-        font-weight: 700;
-        border-radius: 10px;
-        padding: 12px 28px;
-        border: none;
-        transition: all 0.2s ease;
-    }
-
-    .stButton > button:hover {
-        background: linear-gradient(90deg, #1e40af, #1d4ed8);
-        transform: translateY(-1px);
+        border-radius: 6px;
+        font-weight: 600;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -82,55 +53,31 @@ else:
     st.markdown("""
     <style>
     .stApp {
-        background: linear-gradient(180deg, #f8fafc, #eef2ff);
-        color: #0f172a;
-        font-family: "Inter", sans-serif;
+        background-color: #f9fafb;
+        color: #111827;
     }
 
-    h1 {
-        font-size: 2.8rem;
-        font-weight: 800;
-        color: #020617;
-        letter-spacing: -0.5px;
-    }
-
-    h2, h3 {
-        color: #1e293b;
-        font-weight: 700;
+    h1, h2, h3 {
+        color: #111827;
     }
 
     [data-testid="metric-container"] {
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 18px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 16px;
         border: 1px solid #e5e7eb;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.08);
     }
 
     .streamlit-expanderHeader {
-        background: #f1f5f9;
-        border-radius: 12px;
-        font-weight: 600;
-        border: 1px solid #e5e7eb;
-    }
-
-    .stAlert {
-        border-radius: 12px;
+        background-color: #f3f4f6;
+        border-radius: 8px;
     }
 
     .stButton > button {
-        background: linear-gradient(90deg, #2563eb, #3b82f6);
+        background-color: #2563eb;
         color: white;
-        font-weight: 700;
-        border-radius: 10px;
-        padding: 12px 28px;
-        border: none;
-        transition: all 0.2s ease;
-    }
-
-    .stButton > button:hover {
-        background: linear-gradient(90deg, #1d4ed8, #2563eb);
-        transform: translateY(-1px);
+        border-radius: 6px;
+        font-weight: 600;
     }
     </style>
     """, unsafe_allow_html=True)
