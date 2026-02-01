@@ -11,91 +11,108 @@ st.set_page_config(
 )
 
 # =========================================================
-# THEME & DARK MODE
+# DARK MODE TOGGLE
 # =========================================================
 dark_mode = st.toggle("🌙 Dark Mode", value=False)
 
+# =========================================================
+# THEME (THIS ONE *WILL* CHANGE VISUALLY)
+# =========================================================
 if dark_mode:
-    st.markdown("<body class='dark'></body>", unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    .stApp {
+        background: linear-gradient(180deg, #020617, #020617);
+        color: #e5e7eb;
+    }
+
+    h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #f8fafc;
+    }
+
+    h2, h3 {
+        color: #e5e7eb;
+        font-weight: 700;
+    }
+
+    [data-testid="metric-container"] {
+        background: #1e293b;
+        border-radius: 20px;
+        padding: 20px;
+        border-left: 6px solid #22d3ee;
+        box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+        color: white;
+    }
+
+    .streamlit-expanderHeader {
+        background: #020617;
+        border-radius: 14px;
+        font-weight: 600;
+        color: #e5e7eb;
+    }
+
+    .stAlert {
+        background: #020617;
+        border-radius: 14px;
+    }
+
+    .stButton > button {
+        background: linear-gradient(90deg, #22d3ee, #38bdf8);
+        color: #020617;
+        font-weight: 800;
+        border-radius: 14px;
+        padding: 12px 26px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 else:
-    st.markdown("<body class='light'></body>", unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    .stApp {
+        background: linear-gradient(180deg, #f8fafc, #eef2ff);
+        color: #0f172a;
+    }
 
-st.markdown("""
-<style>
+    h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
 
-/* ---------- GLOBAL ---------- */
-.stApp {
-    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont;
-}
+    h2, h3 {
+        color: #1e293b;
+        font-weight: 700;
+    }
 
-/* ---------- LIGHT MODE ---------- */
-.light .stApp {
-    background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-    color: #0f172a;
-}
+    [data-testid="metric-container"] {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        border-left: 6px solid #6366f1;
+        box-shadow: 0 14px 40px rgba(0,0,0,0.12);
+    }
 
-/* ---------- DARK MODE ---------- */
-.dark .stApp {
-    background: linear-gradient(180deg, #020617 0%, #020617 100%);
-    color: #e5e7eb;
-}
+    .streamlit-expanderHeader {
+        background: #eef2ff;
+        border-radius: 14px;
+        font-weight: 600;
+    }
 
-/* ---------- HEADERS ---------- */
-h1 {
-    font-weight: 800;
-    letter-spacing: -0.03em;
-}
-h2, h3 {
-    font-weight: 700;
-    margin-top: 1.5rem;
-}
+    .stAlert {
+        border-radius: 14px;
+    }
 
-/* ---------- METRIC CARDS ---------- */
-[data-testid="metric-container"] {
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(12px);
-    border-radius: 18px;
-    padding: 18px;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.08);
-    border: 1px solid rgba(0,0,0,0.05);
-}
-
-.dark [data-testid="metric-container"] {
-    background: rgba(30,41,59,0.85);
-    border: 1px solid rgba(255,255,255,0.08);
-}
-
-/* ---------- EXPANDERS ---------- */
-.streamlit-expanderHeader {
-    font-size: 16px;
-    font-weight: 600;
-    padding: 12px;
-    border-radius: 12px;
-}
-
-/* ---------- ALERTS ---------- */
-.stAlert {
-    border-radius: 14px;
-    font-size: 15px;
-}
-
-/* ---------- BUTTONS ---------- */
-.stButton > button {
-    background: linear-gradient(90deg, #4f46e5, #6366f1);
-    color: white;
-    font-weight: 700;
-    border-radius: 14px;
-    padding: 12px 22px;
-    border: none;
-}
-
-/* ---------- DIVIDERS ---------- */
-hr {
-    margin: 2.5rem 0;
-}
-
-</style>
-""", unsafe_allow_html=True)
+    .stButton > button {
+        background: linear-gradient(90deg, #4f46e5, #6366f1);
+        color: white;
+        font-weight: 800;
+        border-radius: 14px;
+        padding: 12px 26px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # =========================================================
 # IMPORTS
@@ -120,7 +137,7 @@ from exports.pdf_generator import generate_contract_report
 # =========================================================
 st.title("📄 GenAI-Powered Legal Assistant for Indian SMEs")
 st.write(
-    "Upload a contract to identify risks, understand clauses in plain language, "
+    "Upload a contract to identify legal risks, understand clauses in plain language, "
     "and compare safer alternatives."
 )
 
@@ -135,23 +152,19 @@ uploaded_file = st.file_uploader(
 )
 
 # =========================================================
-# MAIN PROCESSING
+# MAIN LOGIC
 # =========================================================
 if uploaded_file:
     with st.spinner("Analyzing contract..."):
         contract_text = extract_text(uploaded_file)
 
-    if not contract_text or not contract_text.strip():
+    if not contract_text.strip():
         st.error("Could not extract text from the uploaded file.")
         st.stop()
 
     language = detect_language(contract_text)
     contract_type = classify_contract_type(contract_text)
     clauses = extract_clauses(contract_text)
-
-    if not clauses:
-        st.warning("No clauses could be extracted from this document.")
-        st.stop()
 
     clause_risk_levels = []
 
@@ -185,18 +198,18 @@ if uploaded_file:
     summary = (
         f"This **{contract_type.lower()}** is written in **{language}** and "
         f"contains **{len(clauses)} clauses**. "
-        f"The overall legal risk is **{contract_risk.upper()}**."
+        f"Overall legal risk is **{contract_risk.upper()}**."
     )
 
     if contract_risk == "High":
-        st.error(summary + " Immediate legal review is recommended.")
+        st.error(summary + " Immediate legal review recommended.")
     elif contract_risk == "Medium":
         st.warning(summary + " Some clauses should be renegotiated.")
     else:
-        st.success(summary + " The contract appears generally balanced.")
+        st.success(summary + " Contract appears balanced.")
 
     # =====================================================
-    # DASHBOARD
+    # METRICS
     # =====================================================
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Language", language)
@@ -207,7 +220,7 @@ if uploaded_file:
     st.divider()
 
     # =====================================================
-    # RISK DISTRIBUTION
+    # RISK CHART
     # =====================================================
     st.subheader("📊 Risk Distribution")
 
@@ -225,59 +238,41 @@ if uploaded_file:
     st.divider()
 
     # =====================================================
-    # CLAUSE-LEVEL ANALYSIS
+    # CLAUSE ANALYSIS
     # =====================================================
     st.subheader("🧠 Clause-Level Intelligence")
 
-    risk_icon = {"High": "🔴", "Medium": "🟠", "Low": "🟢"}
+    icon = {"High": "🔴", "Medium": "🟠", "Low": "🟢"}
 
     for clause in clauses:
         with st.expander(
-            f"{risk_icon[clause['risk_level']]} Clause {clause['clause_id']} — {clause['risk_level']} Risk"
+            f"{icon[clause['risk_level']]} Clause {clause['clause_id']} — {clause['risk_level']} Risk"
         ):
             st.markdown(f"**Clause Type:** {clause['clause_type']}")
-            st.write("### 📄 Original Clause")
             st.write(clause["text"])
 
             if clause["risk_level"] != "Low":
-                if clause["risk_reasons"]:
-                    st.write("### ⚠️ Why this is risky")
-                    for r in clause["risk_reasons"]:
-                        st.markdown(f"- {r}")
+                st.write("### ⚠️ Why this is risky")
+                for r in clause["risk_reasons"]:
+                    st.markdown(f"- {r}")
 
-                st.write("### 🔁 Clause Comparison")
-                col1, col2 = st.columns(2)
+                st.write("### 🔁 Safer Alternative")
+                if use_ai:
+                    try:
+                        st.success(suggest_alternative_gemini(clause["text"]))
+                    except Exception:
+                        st.success("Add notice periods and mutual protections.")
+                else:
+                    st.success("Add notice periods and mutual protections.")
 
-                with col1:
-                    st.markdown("**Original Clause**")
-                    st.info(clause["text"])
-
-                with col2:
-                    st.markdown("**Safer Alternative**")
-                    if use_ai:
-                        try:
-                            st.success(suggest_alternative_gemini(clause["text"]))
-                        except Exception:
-                            st.success(
-                                "Add notice periods, mutual rights, or payment safeguards."
-                            )
-                    else:
-                        st.success(
-                            "Add notice periods and balance termination rights."
-                        )
-
-                st.write("### 🧠 Plain-Language Explanation")
+                st.write("### 🧠 Plain Explanation")
                 if use_ai:
                     try:
                         st.info(explain_clause_gemini(clause["text"]))
                     except Exception:
-                        st.info(
-                            "This clause may expose the business to financial or operational risk."
-                        )
+                        st.info("This clause creates imbalance and business risk.")
                 else:
-                    st.info(
-                        "This clause may expose the business to financial or operational risk."
-                    )
+                    st.info("This clause creates imbalance and business risk.")
             else:
                 st.success("This clause appears balanced.")
 
@@ -285,11 +280,10 @@ if uploaded_file:
     # PDF EXPORT
     # =====================================================
     st.divider()
-    st.subheader("📤 Export for Legal Review")
+    st.subheader("📤 Export")
 
     if st.button("Generate PDF Report"):
         pdf_path = "exports/contract_analysis_report.pdf"
-
         generate_contract_report(
             filename=pdf_path,
             contract_type=contract_type,
@@ -300,7 +294,7 @@ if uploaded_file:
 
         with open(pdf_path, "rb") as f:
             st.download_button(
-                "📄 Download Contract Analysis PDF",
+                "📄 Download PDF",
                 f,
                 file_name="contract_analysis_report.pdf",
                 mime="application/pdf"
@@ -312,8 +306,6 @@ if uploaded_file:
     st.divider()
     with st.expander("⚖️ Legal Disclaimer"):
         st.write(
-            "This tool provides automated analysis for educational and "
-            "informational purposes only and does not constitute legal advice. "
-            "Users should consult a qualified legal professional before making "
-            "contractual decisions."
+            "This tool provides automated analysis for educational purposes only "
+            "and does not constitute legal advice."
         )
